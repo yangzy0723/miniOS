@@ -20,8 +20,10 @@ uint32_t load_elf(PD *pgdir, const char *name) {
     iread(inode, elf.e_phoff + i * sizeof(ph), &ph, sizeof(ph));
     if (ph.p_type == PT_LOAD) {
       // Lab1-2: Load segment to physical memory
+      iread(inode, ph.p_offset, (void *)ph.p_vaddr, ph.p_filesz);
+      memset((void *)ph.p_vaddr + ph.p_filesz, 0, ph.p_memsz - ph.p_filesz);
       // Lab1-4: Load segment to virtual memory
-      TODO();
+      //TODO();
     }
   }
   // TODO: Lab1-4 alloc stack memory in pgdir
