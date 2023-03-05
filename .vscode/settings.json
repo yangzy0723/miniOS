@@ -1,0 +1,12 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/jojo/Documents/Project/OS/oslab/build/boot",
+            "binaryPath": "/home/jojo/Documents/Project/OS/oslab/build/boot/boot",
+            "binaryArgs": []
+        }
+    ],
+    "files.associations": {
+        "stdint.h": "c"
+    }
+}

@@ -88,7 +88,9 @@ void serial_handle() {
 char getchar() {
   char ch;
   while ((ch = pop_front()) == 0) {
-    serial_handle();
+    sti();
+    hlt();
+    cli();
     //sti(); hlt(); cli(); // change to me in Lab1-7
     //proc_yield(); // change to me in Lab2-1
   }

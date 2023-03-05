@@ -44,12 +44,13 @@ void irq128();
 void irqall();
 
 #define PORT_PIC_MASTER 0x20
-#define PORT_PIC_SLAVE  0xA0
-#define IRQ_SLAVE       2
+#define PORT_PIC_SLAVE 0xA0
+#define IRQ_SLAVE 2
 
-static void init_intr() {
+static void init_intr()
+{
   outb(PORT_PIC_MASTER, 0x11); // you don't need to understand this
-  outb(PORT_PIC_SLAVE, 0x11); // I don't understand either :)
+  outb(PORT_PIC_SLAVE, 0x11);  // I don't understand either :)
   outb(PORT_PIC_MASTER + 1, 32);
   outb(PORT_PIC_SLAVE + 1, 32 + 8);
   outb(PORT_PIC_MASTER + 1, 1 << 2);
@@ -58,9 +59,11 @@ static void init_intr() {
   outb(PORT_PIC_SLAVE + 1, 0x3);
 }
 
-void init_cte() {
-  for (int i = 0; i < NR_IRQ; i ++) {
-    idt[i]  = GATE32(STS_IG, KSEL(SEG_KCODE), irqall, DPL_KERN);
+void init_cte()
+{
+  for (int i = 0; i < NR_IRQ; i++)
+  {
+    idt[i] = GATE32(STS_IG, KSEL(SEG_KCODE), irqall, DPL_KERN);
   }
   idt[0] = GATE32(STS_IG, KSEL(SEG_KCODE), irq0, DPL_KERN);
   idt[1] = GATE32(STS_IG, KSEL(SEG_KCODE), irq1, DPL_KERN);
@@ -101,16 +104,32 @@ void init_cte() {
   init_intr();
 }
 
-void irq_handle(Context *ctx) {
-  if (ctx->irq <= 16) {
+void irq_handle(Context *ctx)
+{
+  if (ctx->irq <= 16)
+  {
     // just ignore me now, usage is in Lab1-6
     exception_debug_handler(ctx);
   }
-  switch (ctx->irq) {
+  switch (ctx->irq)
+  {
   // TODO: Lab1-5 handle pagefault and syscall
+  case EX_PF:
+    vm_pgfault(get_cr2(), ctx->errcode);
+    break;
+  case EX_SYSCALL:
+    do_syscall(ctx);
+    break;
   // TODO: Lab1-7 handle serial and timer
+  case T_IRQ0 + IRQ_COM1:
+    serial_handle();
+    break;
+  case T_IRQ0 + IRQ_TIMER:
+    timer_handle();
+    break;
   // TODO: Lab2-1 handle yield
-  default: assert(ctx->irq >= T_IRQ0 && ctx->irq < T_IRQ0 + NR_INTR);
+  default:
+    assert(ctx->irq >= T_IRQ0 && ctx->irq < T_IRQ0 + NR_INTR);
   }
   irq_iret(ctx);
 }
