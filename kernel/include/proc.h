@@ -9,9 +9,11 @@
 
 #define KSTACK_SIZE 4096
 
-typedef union {
+typedef union
+{
   uint8_t stack[KSTACK_SIZE];
-  struct {
+  struct
+  {
     uint8_t pad[KSTACK_SIZE - sizeof(Context)];
     Context ctx;
   };
@@ -21,20 +23,29 @@ typedef union {
 #define MAX_USEM 32
 #define MAX_UFILE 32
 
-typedef struct proc {
+typedef struct proc
+{
   int pid;
-  enum {UNUSED, UNINIT, RUNNING, READY, ZOMBIE, BLOCKED} status;
+  enum
+  {
+    UNUSED,
+    UNINIT,
+    RUNNING,
+    READY,
+    ZOMBIE,
+    BLOCKED
+  } status;
   PD *pgdir;
   size_t brk;
   kstack_t *kstack;
-  Context *ctx; // points to restore context for READY proc
-  //struct proc *parent; // Lab2-2
-  //int child_num; // Lab2-2
-  //int exit_code; // Lab2-3
-  //sem_t zombie_sem; // Lab2-4
-  //usem_t *usems[MAX_USEM]; // Lab2-5
-  //file_t *files[MAX_UFILE]; // Lab3-1
-  //inode_t *cwd; // Lab3-2
+  Context *ctx;        // points to restore context for READY proc
+  struct proc *parent; // Lab2-2
+  int child_num;       // Lab2-2
+  int exit_code; // Lab2-3
+  // sem_t zombie_sem; // Lab2-4
+  // usem_t *usems[MAX_USEM]; // Lab2-5
+  // file_t *files[MAX_UFILE]; // Lab3-1
+  // inode_t *cwd; // Lab3-2
 } proc_t;
 
 void init_proc();

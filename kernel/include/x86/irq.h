@@ -16,6 +16,7 @@
 #define EX_PF          14
 #define EX_MF          15
 #define EX_SYSCALL     0x80
+#define EX_PROC        0x81
 
 #define NR_IRQ         256     // IDT size
 #define NR_INTR        16

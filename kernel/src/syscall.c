@@ -50,22 +50,20 @@ int sys_read(int fd, void *buf, size_t count)
 int sys_brk(void *addr)
 {
   // TODO: Lab1-5
-  static size_t brk = 0;          // use brk of proc instead of this in Lab2-1
-  size_t new_brk = PAGE_UP(addr); // brk和new_brk是天生已经对齐的
-  if (brk == 0)
-  {
-    brk = new_brk;
-  }
-  else if (new_brk > brk)
+  proc_t *now_proc_t = proc_curr(); // use brk of proc instead of this in Lab2-1
+  size_t new_brk = PAGE_UP(addr);   // brk和new_brk是天生已经对齐的
+  if (now_proc_t->brk == 0)
+    now_proc_t->brk = new_brk;
+  else if (new_brk > now_proc_t->brk)
   {
     // printf("new_brk is biger: new_brk %p, brk %p\n", new_brk, brk);
-    vm_map(vm_curr(), brk, new_brk - brk, 0x7);
-    brk = new_brk;
+    vm_map(vm_curr(), now_proc_t->brk, new_brk - now_proc_t->brk, 0x7);
+    now_proc_t->brk = new_brk;
   }
-  else if (new_brk < brk)
+  else if (new_brk < now_proc_t->brk)
   {
-    vm_unmap(vm_curr(), new_brk, brk - new_brk);
-    brk = new_brk;
+    vm_unmap(vm_curr(), new_brk, now_proc_t->brk - new_brk);
+    now_proc_t->brk = new_brk;
   }
   return 0;
 }
@@ -76,9 +74,7 @@ void sys_sleep(int ticks)
   uint32_t time = get_tick();
   while (get_tick() - time < ticks)
   {
-    sti();
-    hlt();
-    cli();
+    proc_yield();
   }
 }
 
@@ -94,6 +90,7 @@ int sys_exec(const char *path, char *const argv[])
   }
   PD *old_dir = vm_curr();
   set_cr3(pgdir);
+  proc_curr()->pgdir = pgdir;
   vm_teardown(old_dir);
   irq_iret(&ctx);
   // TODO(); // Lab1-8, Lab2-1
@@ -101,7 +98,7 @@ int sys_exec(const char *path, char *const argv[])
 
 int sys_getpid()
 {
-  TODO(); // Lab2-1
+  return proc_curr()->pid; // Lab2-1
 }
 
 void sys_yield()
@@ -111,17 +108,46 @@ void sys_yield()
 
 int sys_fork()
 {
-  TODO(); // Lab2-2
+  proc_t *new_proc = proc_alloc();
+  if (new_proc == NULL)
+    return -1;
+  proc_copycurr(new_proc);
+  proc_addready(new_proc);
+  return new_proc->pid;
+
+  // TODO(); // Lab2-2
 }
 
 void sys_exit(int status)
 {
-  TODO(); // Lab2-3
+  // while (1)
+  //   proc_yield();
+  proc_makezombie(proc_curr(), status);
+  INT(0X81);
+  // Lab2-3
 }
 
 int sys_wait(int *status)
 {
-  TODO(); // Lab2-3, Lab2-4
+  // sys_sleep(250);
+  // return 0;
+  proc_t *now_proc = proc_curr();
+  if (now_proc->child_num == 0)
+    // Lab2-3, Lab2-4
+    return -1;
+  proc_t *child_zombie;
+  while ((child_zombie = proc_findzombie(now_proc)) == NULL)
+  {
+    proc_yield();
+  }
+
+  if (status != NULL)
+  {
+    *status = child_zombie->exit_code;
+  }
+  proc_free(child_zombie);
+  now_proc->child_num--;
+  return child_zombie->pid;
 }
 
 int sys_sem_open(int value)

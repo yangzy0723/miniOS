@@ -87,7 +87,7 @@ int load_user(PD *pgdir, Context *ctx, const char *name, char *const argv[])
   ctx->eip = eip;
   // TODO: Lab1-6 init ctx->ss and esp
   ctx->ss = USEL((SEG_UDATA));
-  ctx->esp = load_arg(pgdir, argv);
-  ctx->eflags = 0x202; // TODO: Lab1-7 change me to 0x202
+  ctx->esp = load_arg(pgdir, argv); // 确定用户栈的栈底，上面就有一些传进main函数的参数了
+  ctx->eflags = 0x202;              // TODO: Lab1-7 change me to 0x202
   return 0;
 }
