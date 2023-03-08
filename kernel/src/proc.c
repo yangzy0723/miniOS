@@ -16,6 +16,7 @@ void init_proc()
   curr->pgdir = vm_curr();
   curr->kstack = (void *)(KER_MEM - PGSIZE);
   // Lab2-4, init zombie_sem
+  sem_init(&(curr->zombie_sem), 0);
   // Lab3-2, set cwd
 }
 
@@ -34,6 +35,9 @@ proc_t *proc_alloc()
       pcb[i].ctx = &(pcb[i].kstack->ctx);
       pcb[i].child_num = 0;
       pcb[i].parent = NULL;
+      sem_init(&pcb[i].zombie_sem, 0);
+      for (int j = 0; j < MAX_USEM; j++)
+        pcb[i].usems[j] = NULL;
       return &pcb[i];
     }
   return NULL;
@@ -88,6 +92,12 @@ void proc_copycurr(proc_t *proc)
   proc->ctx->eax = 0;
   proc->parent = now_proc;
   now_proc->child_num++;
+  for (int i = 0; i < MAX_USEM; i++)
+  {
+    proc->usems[i] = now_proc->usems[i];
+    if (now_proc->usems[i] != NULL)
+      usem_dup(now_proc->usems[i]);
+  }
   // Lab2-5: dup opened usems
   // Lab3-1: dup opened files
   // Lab3-2: dup cwd
@@ -102,6 +112,11 @@ void proc_makezombie(proc_t *proc, int exitcode)
   for (int i = 1; i < PROC_NUM; i++)
     if (pcb[i].parent == proc)
       pcb[i].parent = NULL;
+  if (proc->parent != NULL)
+    sem_v(&(proc->parent->zombie_sem));
+  for (int i = 0; i < MAX_USEM; i++)
+    if (proc->usems[i] != NULL)
+      usem_close(proc->usems[i]);
   // Lab2-5: close opened usem
   // Lab3-1: close opened files
   // Lab3-2: close cwd
@@ -111,11 +126,11 @@ void proc_makezombie(proc_t *proc, int exitcode)
 proc_t *proc_findzombie(proc_t *proc)
 {
   // Lab2-3: find a ZOMBIE whose parent is proc, return NULL if none
-  for(int i = 1; i < PROC_NUM; i++)
-    if(pcb[i].parent == proc && pcb[i].status == ZOMBIE)
+  for (int i = 1; i < PROC_NUM; i++)
+    if (pcb[i].parent == proc && pcb[i].status == ZOMBIE)
       return &pcb[i];
   return NULL;
-  //TODO();
+  // TODO();
 }
 
 void proc_block()
@@ -128,13 +143,20 @@ void proc_block()
 int proc_allocusem(proc_t *proc)
 {
   // Lab2-5: find a free slot in proc->usems, return its index, or -1 if none
-  TODO();
+  for (int i = 0; i < MAX_USEM; i++)
+    if (proc->usems[i] == NULL)
+      return i;
+  return -1;
+  // TODO();
 }
 
 usem_t *proc_getusem(proc_t *proc, int sem_id)
 {
   // Lab2-5: return proc->usems[sem_id], or NULL if sem_id out of bound
-  TODO();
+  if (sem_id < 0 || sem_id > 31)
+    return NULL;
+  return proc->usems[sem_id];
+  // TODO();
 }
 
 int proc_allocfile(proc_t *proc)
