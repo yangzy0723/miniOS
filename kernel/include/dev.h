@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-typedef struct dev {
+typedef struct dev
+{
   int (*read)(void *buf, uint32_t size);
   int (*write)(const void *buf, uint32_t size);
 } dev_t;

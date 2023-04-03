@@ -24,13 +24,14 @@ int iremove(const char *path);
 
 #ifdef EASY_FS
 
-#define MAX_NAME  (31 - 2 * sizeof(uint32_t))
+#define MAX_NAME (31 - 2 * sizeof(uint32_t))
 
 #else
 
-#define MAX_NAME  (31 - sizeof(uint32_t))
+#define MAX_NAME (31 - sizeof(uint32_t))
 
-typedef struct dirent {
+typedef struct dirent
+{
   uint32_t inode;
   char name[MAX_NAME + 1];
 } dirent_t;

@@ -38,13 +38,13 @@ typedef struct proc
   PD *pgdir;
   size_t brk;
   kstack_t *kstack;
-  Context *ctx;            // points to restore context for READY proc
-  struct proc *parent;     // Lab2-2
-  int child_num;           // Lab2-2
-  int exit_code;           // Lab2-3
-  sem_t zombie_sem;        // Lab2-4
-  usem_t *usems[MAX_USEM]; // Lab2-5
-  // file_t *files[MAX_UFILE]; // Lab3-1
+  Context *ctx;             // points to restore context for READY proc
+  struct proc *parent;      // Lab2-2
+  int child_num;            // Lab2-2
+  int exit_code;            // Lab2-3
+  sem_t zombie_sem;         // Lab2-4
+  usem_t *usems[MAX_USEM];  // Lab2-5
+  file_t *files[MAX_UFILE]; // Lab3-1
   // inode_t *cwd; // Lab3-2
 } proc_t;
 
