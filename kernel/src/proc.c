@@ -17,6 +17,7 @@ void init_proc()
   curr->kstack = (void *)(KER_MEM - PGSIZE);
   // Lab2-4, init zombie_sem
   sem_init(&(curr->zombie_sem), 0);
+  curr->cwd = iopen("/", TYPE_NONE);
   // Lab3-2, set cwd
 }
 
@@ -40,6 +41,7 @@ proc_t *proc_alloc()
         pcb[i].usems[j] = NULL;
       for (int j = 0; j < MAX_UFILE; j++)
         pcb[i].files[j] = NULL;
+      pcb[i].cwd = NULL;
       return &pcb[i];
     }
   return NULL;
@@ -106,6 +108,7 @@ void proc_copycurr(proc_t *proc)
     if (now_proc->files[i] != NULL)
       fdup(now_proc->files[i]);
   }
+  proc->cwd = idup(now_proc->cwd);
   // Lab2-5: dup opened usems
   // Lab3-1: dup opened files
   // Lab3-2: dup cwd
@@ -128,6 +131,7 @@ void proc_makezombie(proc_t *proc, int exitcode)
   for (int i = 0; i < MAX_UFILE; i++)
     if (proc->files[i] != NULL)
       fclose(proc->files[i]);
+  iclose(proc->cwd);
   // Lab2-5: close opened usem
   // Lab3-1: close opened files
   // Lab3-2: close cwd

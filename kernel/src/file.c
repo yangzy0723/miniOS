@@ -30,13 +30,28 @@ file_t *fopen(const char *path, int mode)
   //       if file not exist and type==TYPE_NONE, return NULL
   //       if file not exist and type!=TYPE_NONE, create the file as type
   // you can ignore this in Lab3-1
-  int open_type = 114514;
+  int open_type;
+  if ((mode & O_CREATE) == 0)
+    open_type = TYPE_NONE;
+  else
+  {
+    if ((mode & O_DIR) == 0)
+      open_type = TYPE_FILE;
+    else
+      open_type = TYPE_DIR;
+  }
   ip = iopen(path, open_type);
   if (!ip)
     goto bad;
   int type = itype(ip);
   if (type == TYPE_FILE || type == TYPE_DIR)
   {
+    if (type != TYPE_DIR && (mode & O_DIR))
+      goto bad;
+    if (type == TYPE_DIR && ((mode & O_WRONLY) || (mode & O_RDWR) || (mode & O_TRUNC)))
+      goto bad;
+    if ((mode & O_TRUNC))
+      itrunc(ip);
     // TODO: Lab3-2, if type is not DIR, go bad if mode&O_DIR
 
     // TODO: Lab3-2, if type is DIR, go bad if mode WRITE or TRUNC
@@ -81,9 +96,7 @@ int fread(file_t *file, void *buf, uint32_t size)
     return ret;
   }
   else if (file->type == TYPE_DEV)
-  {
     return file->dev_op->read(buf, size);
-  }
   else
     assert(0);
   // TODO();
@@ -103,9 +116,7 @@ int fwrite(file_t *file, const void *buf, uint32_t size)
     return ret;
   }
   else if (file->type == TYPE_DEV)
-  {
     return file->dev_op->write(buf, size);
-  }
   else
     assert(0);
   // TODO();

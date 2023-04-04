@@ -5,7 +5,8 @@
 #include "fs.h"
 #include "dev.h"
 
-typedef struct file {
+typedef struct file
+{
   int type;
   int ref;
   int readable, writable;
